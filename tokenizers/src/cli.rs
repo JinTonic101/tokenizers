@@ -4,11 +4,11 @@
 
 use clap::{App, AppSettings, Arg, ArgMatches, SubCommand};
 use std::io::{self, BufRead, Write};
-use tokenizers::models::bpe::{Error, BPE};
+use tokenizers::models::bpe::BPE;
 use tokenizers::pre_tokenizers::byte_level::ByteLevel;
-use tokenizers::tokenizer::Tokenizer;
+use tokenizers::tokenizer::{AddedToken, EncodeInput, Result, Tokenizer};
 
-fn shell(matches: &ArgMatches) -> Result<(), Error> {
+fn shell(matches: &ArgMatches) -> Result<()> {
     let vocab = matches
         .value_of("vocab")
         .expect("Must give a vocab.json file");
@@ -16,9 +16,21 @@ fn shell(matches: &ArgMatches) -> Result<(), Error> {
         .value_of("merges")
         .expect("Must give a merges.txt file");
 
-    let bpe = BPE::from_files(vocab, merges)?;
+    let bpe = BPE::from_files(vocab, merges).build()?;
     let mut tokenizer = Tokenizer::new(Box::new(bpe));
-    tokenizer.with_pre_tokenizer(Box::new(ByteLevel));
+    tokenizer.with_pre_tokenizer(Box::new(ByteLevel::default()));
+    tokenizer.with_decoder(Box::new(ByteLevel::default()));
+
+    tokenizer.add_tokens(&[
+        AddedToken {
+            content: String::from("ing"),
+            single_word: false,
+        },
+        AddedToken {
+            content: String::from("[ENT]"),
+            single_word: true,
+        },
+    ]);
 
     let stdin = io::stdin();
     let mut handle = stdin.lock();
@@ -33,26 +45,21 @@ fn shell(matches: &ArgMatches) -> Result<(), Error> {
         let buffer = buffer.trim_end();
 
         let timer = std::time::Instant::now();
-        let encoded = tokenizer.encode(buffer);
+        let encoded = tokenizer.encode(EncodeInput::Single(buffer.to_owned()))?;
         let elapsed = timer.elapsed();
         println!("\nInput:\t\t{}", buffer);
+        println!("Tokens:\t\t{:?}", encoded.get_tokens());
+        println!("IDs:\t\t{:?}", encoded.get_ids());
+        println!("Offsets:\t{:?}", encoded.get_offsets());
         println!(
-            "Tokens:\t\t{:?}",
-            encoded.iter().map(|t| &t.value).collect::<Vec<_>>()
-        );
-        println!(
-            "IDs:\t\t{:?}",
-            encoded.iter().map(|t| t.id).collect::<Vec<_>>()
-        );
-        println!(
-            "Offsets:\t{:?}",
-            encoded.iter().map(|t| t.offsets).collect::<Vec<_>>()
+            "Decoded:\t{}",
+            tokenizer.decode(encoded.get_ids().to_vec(), true).unwrap()
         );
         println!("Tokenized in {:?}", elapsed);
     }
 }
 
-fn main() -> Result<(), Error> {
+fn main() -> Result<()> {
     let matches = App::new("tokenizers")
         .version("0.0.1")
         .author("Anthony M. <anthony@huggingface.co>")

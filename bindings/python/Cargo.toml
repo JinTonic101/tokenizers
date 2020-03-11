@@ -1,6 +1,6 @@
 [package]
-name = "tokenizers"
-version = "0.0.1"
+name = "tokenizers-python"
+version = "0.6.0"
 authors = ["Anthony MOI <m.anthony.moi@gmail.com>"]
 edition = "2018"
 
@@ -9,10 +9,10 @@ name = "tokenizers"
 crate-type = ["cdylib"]
 
 [dependencies.pyo3]
-version = "0.8.2"
+version = "0.8.4"
 features = ["extension-module"]
 
-[dependencies.tokenizers-lib]
+[dependencies.tokenizers]
 version = "*"
 path = "../../tokenizers"
 

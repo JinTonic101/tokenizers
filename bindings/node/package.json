@@ -1,18 +1,59 @@
 {
-  "name": "node",
-  "version": "0.1.0",
+  "name": "tokenizers",
+  "version": "0.5.0",
   "description": "",
-  "main": "lib/index.js",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "repository": {
     "type": "git",
-    "url": ".."
+    "url": "git+https://github.com/huggingface/tokenizers.git"
   },
+  "bugs": {
+    "url": "https://github.com/huggingface/tokenizers/issues"
+  },
+  "homepage": "https://github.com/huggingface/tokenizers/tree/master/bindings/node",
   "author": "Anthony MOI <m.anthony.moi@gmail.com>",
   "license": "Apache-2.0",
   "dependencies": {
-    "neon-cli": "^0.3.3"
+    "@types/node": "^13.1.6",
+    "node-pre-gyp": "^0.14.0"
+  },
+  "devDependencies": {
+    "@types/jest": "^24.0.25",
+    "@typescript-eslint/eslint-plugin": "^2.16.0",
+    "@typescript-eslint/parser": "^2.16.0",
+    "eslint": "^6.8.0",
+    "eslint-config-prettier": "^6.9.0",
+    "eslint-plugin-jest": "^23.6.0",
+    "eslint-plugin-jsdoc": "^20.4.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-simple-import-sort": "^5.0.0",
+    "jest": "^24.9.0",
+    "neon-cli": "^0.3.3",
+    "prettier": "1.19.1",
+    "shelljs": "^0.8.3",
+    "ts-jest": "^24.3.0",
+    "typescript": "^3.7.4"
+  },
+  "engines": {
+    "node": ">=10 < 11 || >=12 <14"
   },
   "scripts": {
-    "install": "neon build"
+    "dev-ts": "rm -rf dist && tsc -p tsconfig.lib.json && rsync -a $(pwd)/lib/bindings/ dist/bindings/",
+    "dev-rs": "neon build",
+    "dev": "npm run dev-rs && npm run dev-ts",
+    "compile": "neon build --release",
+    "clean-rs": "neon clean",
+    "package": "node-pre-gyp package",
+    "test": "jest",
+    "lint-check": "eslint --ext .js,.ts lib examples",
+    "lint": "eslint --fix --ext .js,.ts lib examples"
+  },
+  "binary": {
+    "module_name": "index",
+    "module_path": "./bin-package",
+    "host": "https://tokenizers-releases.s3.amazonaws.com/node",
+    "package_name": "{module_name}-v{version}-{node_abi}-{platform}-{arch}-{libc}.tar.gz",
+    "remote_path": "{version}"
   }
 }

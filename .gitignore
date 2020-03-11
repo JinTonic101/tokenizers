@@ -4,5 +4,16 @@
 .env
 target
 
+Cargo.lock
+
 /data
 /docs
+
+__pycache__
+pip-wheel-metadata
+*.egg-info
+*.so
+/bindings/python/build
+/bindings/python/dist
+
+.vscode
